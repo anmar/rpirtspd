@@ -1,0 +1,12 @@
+Source: rpirtspd
+Priority: optional
+Section: libs
+Maintainer: Angel Marin <anmar@anmar.eu>
+Build-Depends: debhelper (>= 9), autotools-dev, libtool, libgstreamer1.0-dev, libgstreamer-plugins-base1.0-dev, libasound2-dev, pkg-config, dpkg-dev (>= 1.16.1)
+Standards-Version: 3.9.5
+Homepage: https://github.com/anmar/rpirtspd
+
+Package: rpirtspd
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libgstreamer1.0-0, gstreamer1.0-plugins-base, gstreamer1.0-rpicamsrc, libasound2
+Description: Streaming server RPI-builtin camera

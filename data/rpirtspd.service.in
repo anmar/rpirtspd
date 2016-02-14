@@ -1,0 +1,19 @@
+#  systemd is free software; you can redistribute it and/or modify it
+#  under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 2 of the License, or
+#  (at your option) any later version.
+
+[Unit]
+Description=rpirtspd
+After=network.target
+
+[Service]
+ExecStart=@prefix@/bin/rpirtspd --rtsp
+StandardOutput=journal
+StandardError=journal
+KillMode=process
+Restart=on-failure
+RestartSec=32s
+
+[Install]
+WantedBy=multi-user.target

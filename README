@@ -1,0 +1,47 @@
+
+rPiRTSPD
+========
+
+rPiRTSPD is a gstreamer based rtsp server that streams video from the
+Raspberry Pi camera module.
+
+It depends on gst-rpicamsrc <https://github.com/thaytan/gst-rpicamsrc/>
+as video source and alsa for audio.
+
+Running
+=======
+
+- Standalone
+
+rpirtspd --rtsp
+
+- System service
+
+systemctl start rpirtspd.service
+
+
+Dependencies
+============
+
+- Build requirements:
+  * autoconf
+  * automake
+  * libtool
+  * pkg-config
+  * libgstreamer1.0-dev
+  * libgstreamer-plugins-base1.0-dev
+  * libgstrtspserver-1.0-0-dev
+  * libasound2-dev
+
+- Runtime requirements:
+  * gstreamer1.0-rpicamsrc
+  * libgstreamer1.0
+  * gstreamer1.0-plugins-base
+  * gstreamer1.0-plugins-bad
+  * gstreamer1.0-plugins-ugly
+  * gstreamer1.0-alsa
+  * libavcodec-extra
+  * libasound2
+
+These are raspbian package names, they might be called
+differently on other distros
