@@ -42,6 +42,9 @@
 gchar *rs_args__bind_address = NULL;
 gchar *rs_args__bind_port = NULL;
 gchar *rs_args__video_args = NULL;
+gint rs_args__video_width = 720;
+gint rs_args__video_height = 480;
+gint rs_args__video_frm = 25;
 gchar *rs_args__audio_args = NULL;
 gint rs_args__audio_bitrate = 8000;
 gboolean rs_args__out_quiet = FALSE;
@@ -59,6 +62,9 @@ int main (int argc, char *argv[]) {
     { "bind-address", 0, 0, G_OPTION_ARG_STRING, &rs_args__bind_address, "Local IP address to bind", "0.0.0.0" },
     { "bind-port", 0, 0, G_OPTION_ARG_STRING, &rs_args__bind_port, "Listen port", "8554" },
     { "video-args", 0, 0, G_OPTION_ARG_STRING, &rs_args__video_args, "rpicamsrc video pipeline arguments", "bitrate=..." },
+    { "video-width", 0, 0, G_OPTION_ARG_INT, &rs_args__video_width, "Video width", "720" },
+    { "video-height", 0, 0, G_OPTION_ARG_INT, &rs_args__video_height, "Video height", "480" },
+    { "video-framerate", 0, 0, G_OPTION_ARG_INT, &rs_args__video_frm, "Video frame rate", "25" },
     { "audio-args", 0, 0, G_OPTION_ARG_STRING, &rs_args__audio_args, "alsasrc audio pipeline arguments", "device=..." },
     { "audio-bitrate", 0, 0, G_OPTION_ARG_INT, &rs_args__audio_bitrate, "Audio bitrate", "8000" },
     { "quiet", 'q', 0, G_OPTION_ARG_NONE, &rs_args__out_quiet, "Quiet", NULL },

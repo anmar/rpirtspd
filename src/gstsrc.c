@@ -79,9 +79,10 @@ static gchar * stream_pipeline( gchar *pipeline_video, gchar *pipeline_audio ) {
 
 static gchar * stream_pipeline_video( void ) {
   gchar *pipeline = g_strdup_printf("rpicamsrc %s !"
-    " video/x-h264,width=720,height=480,framerate=25/1 ! "
+    " video/x-h264,width=%d,height=%d,framerate=%d/1 ! "
     "h264parse ! rtph264pay config-interval=5 pt=96 name=pay0",
-      rs_args__video_args ? rs_args__video_args : "bitrate=1000000 hflip=true vflip=true" );
+      rs_args__video_args ? rs_args__video_args : "bitrate=1000000 hflip=true vflip=true",
+      rs_args__video_width, rs_args__video_height, rs_args__video_frm );
   return pipeline;
 }
 static gchar * stream_pipeline_audio_device_first( void ) {
