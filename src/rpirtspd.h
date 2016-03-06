@@ -41,6 +41,7 @@ extern gchar *rs_args__bind_address;
 extern gchar *rs_args__bind_port;
 extern gchar *rs_args__video_args;
 extern gchar *rs_args__audio_args;
+extern gint rs_args__audio_bitrate;
 extern gboolean rs_args__out_quiet;
 extern gboolean rs_args__out_verbose;
 extern gboolean rs_args__mode_test;

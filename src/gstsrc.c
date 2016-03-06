@@ -100,8 +100,8 @@ static gchar * stream_pipeline_audio( void ) {
     return NULL;
   }
   gchar *pipeline =  g_strdup_printf("alsasrc %s !"
-    " queue ! audio/x-raw,rate=8000 ! alawenc ! rtppcmapay name=pay1 pt=97",
-      rs_args__audio_args ? rs_args__audio_args : device );
+    " queue ! audio/x-raw,rate=%d ! alawenc ! rtppcmapay name=pay1 pt=97",
+      rs_args__audio_args ? rs_args__audio_args : device, rs_args__audio_bitrate );
   if ( device ) {
     g_free(device);
   }
