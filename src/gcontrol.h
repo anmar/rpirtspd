@@ -31,28 +31,29 @@
 */
 
 #include <glib.h>
+#include <glib/gprintf.h>
 
-#ifndef RS__RTSPD_H__
-#define RS__RTSPD_H__
+#if HAVE_GIO_UNIX
+
+#include <gio/gio.h>
+#include <gio/gunixsocketaddress.h>
+
+#endif /* HAVE_GIO_UNIX */
+
+#ifndef RS__GCONTROL_H__
+#define RS__GCONTROL_H__
 
 G_BEGIN_DECLS
 
-extern gchar *rs_args__control_socket;
-extern gboolean rs_args__control_send;
-extern gchar *rs_args__bind_address;
-extern gchar *rs_args__bind_port;
-extern gchar *rs_args__video_args;
-extern gint rs_args__video_width;
-extern gint rs_args__video_height;
-extern gint rs_args__video_frm;
-extern gchar *rs_args__audio_args;
-extern gint rs_args__audio_bitrate;
-extern gboolean rs_args__out_quiet;
-extern gboolean rs_args__out_verbose;
-extern gboolean rs_args__mode_test;
-extern gboolean rs_args__listen_rtsp;
-extern gboolean rs_args__listen_control;
+#if HAVE_GIO_UNIX
+
+gboolean gcontrol_incoming_callback( GSocketService *service, GSocketConnection *connection, GObject *source_object, gpointer user_data );
+
+#endif /* HAVE_GIO_UNIX */
+
+gint gcontrol_server_init( int *argc, char **argv[] );
+gint gcontrol_client_send();
 
 G_END_DECLS
 
-#endif /* RS__RTSPD_H__ */
+#endif /* RS__GCONTROL_H__ */

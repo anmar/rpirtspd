@@ -34,11 +34,14 @@
 #include "config.h"
 #endif
 
-#include <glib.h>
-
-#include "gstsrc.h"
 #include "rpirtspd.h"
 
+#include "gstsrc.h"
+
+#include "gcontrol.h"
+
+gchar *rs_args__control_socket = NULL;
+gboolean rs_args__control_send = FALSE;
 gchar *rs_args__bind_address = NULL;
 gchar *rs_args__bind_port = NULL;
 gchar *rs_args__video_args = NULL;
@@ -51,6 +54,8 @@ gboolean rs_args__out_quiet = FALSE;
 gboolean rs_args__out_verbose = FALSE;
 gboolean rs_args__mode_test = FALSE;
 gboolean rs_args__listen_rtsp = FALSE;
+gboolean rs_args__listen_control = FALSE;
+
 
 int main (int argc, char *argv[]) {
   gint retc = 0;
@@ -59,6 +64,8 @@ int main (int argc, char *argv[]) {
   GError *error = NULL;
   GOptionEntry entries[] =
   {
+    { "control-path", 0, 0, G_OPTION_ARG_STRING, &rs_args__control_socket, "Control socket path", NULL },
+    { "control-send", 0, 0, G_OPTION_ARG_NONE, &rs_args__control_send, "Send control commands", NULL },
     { "bind-address", 0, 0, G_OPTION_ARG_STRING, &rs_args__bind_address, "Local IP address to bind", "0.0.0.0" },
     { "bind-port", 0, 0, G_OPTION_ARG_STRING, &rs_args__bind_port, "Listen port", "8554" },
     { "video-args", 0, 0, G_OPTION_ARG_STRING, &rs_args__video_args, "rpicamsrc video pipeline arguments", "bitrate=..." },
@@ -70,6 +77,7 @@ int main (int argc, char *argv[]) {
     { "quiet", 'q', 0, G_OPTION_ARG_NONE, &rs_args__out_quiet, "Quiet", NULL },
     { "verbose", 'v', 0, G_OPTION_ARG_NONE, &rs_args__out_verbose, "Verbose", NULL },
     { "rtsp", 0, 0, G_OPTION_ARG_NONE, &rs_args__listen_rtsp, "Start rtsp server", NULL },
+    { "control", 0, 0, G_OPTION_ARG_NONE, &rs_args__listen_control, "Start control socket", NULL },
     { "test", 0, 0, G_OPTION_ARG_NONE, &rs_args__mode_test, "Test mode (allows pipeline parse errors)", NULL },
     { NULL }
   };
@@ -80,12 +88,19 @@ int main (int argc, char *argv[]) {
     g_print ("option parsing failed: %s\n", error->message);
     goto failed;
   }
+  if ( rs_args__control_send ) {
+    gcontrol_client_send();
+    return 0;
+  }
   retc = server_gstsrc_startgst_init(&argc, &argv);
   if ( retc!=0 ) {
     goto failed;
   }
 
   if ( rs_args__listen_rtsp ) {
+    if ( rs_args__listen_control ) {
+      gcontrol_server_init(&argc, &argv);
+    }
     loop = g_main_loop_new (NULL, FALSE);
     g_main_loop_run (loop);
   }
