@@ -42,6 +42,7 @@
 G_BEGIN_DECLS
 
 gint server_gstsrc_startgst_init (int *argc, char **argv[]);
+gboolean server_gstsrc_configure( char *params );
 
 G_END_DECLS
 

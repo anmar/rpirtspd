@@ -40,6 +40,17 @@
 
 #include "alsasrc.h"
 
+static GHashTable *hash_media = NULL;
+static const gchar *rpicam_params[] = { "hflip", "vflip", "roi-x", "roi-y", "roi-w", "roi-h", NULL };
+
+static void media_configure (GstRTSPMediaFactory * factory, GstRTSPMedia * media, gpointer user_data) {
+  if ( hash_media == NULL ) {
+    return;
+  }
+  g_hash_table_insert(hash_media, user_data, media);
+  return;
+}
+
 /* this timeout is periodically run to clean up the expired sessions from the
  * pool. This needs to be run explicitly currently but might be done
  * automatically as part of the mainloop. */
@@ -78,7 +89,7 @@ static gchar * stream_pipeline( gchar *pipeline_video, gchar *pipeline_audio ) {
 }
 
 static gchar * stream_pipeline_video( void ) {
-  gchar *pipeline = g_strdup_printf("rpicamsrc %s !"
+  gchar *pipeline = g_strdup_printf("rpicamsrc name=picam1 %s !"
     " video/x-h264,width=%d,height=%d,framerate=%d/1 ! "
     "h264parse ! rtph264pay config-interval=5 pt=96 name=pay0",
       rs_args__video_args ? rs_args__video_args : "bitrate=1000000",
@@ -114,6 +125,7 @@ static void set_stream_main( GstRTSPMountPoints *mounts ) {
   GstRTSPMediaFactory *factory;
   factory = gst_rtsp_media_factory_new ();
   gst_rtsp_media_factory_set_shared(factory, TRUE);
+  g_signal_connect (factory, "media-configure", (GCallback)media_configure, "main" );
   pipeline = stream_pipeline(stream_pipeline_video(), stream_pipeline_audio());
   if ( rs_args__out_verbose ) {
     g_print("set_stream_main: Pipeline [%s]\n", pipeline);
@@ -164,12 +176,81 @@ static void set_stream_video( GstRTSPMountPoints *mounts ) {
   }
   factory = gst_rtsp_media_factory_new ();
   gst_rtsp_media_factory_set_shared(factory, TRUE);
+  g_signal_connect (factory, "media-configure", (GCallback)media_configure, "video" );
   gst_rtsp_media_factory_set_launch (factory, pipeline);
   gst_rtsp_mount_points_add_factory (mounts, "/video", factory);
   if ( !rs_args__out_quiet ) {
     g_print ("[rtsp://127.0.0.1:8554/video] Video only stream\n");
   }
   return;
+}
+
+gboolean server_gstsrc_hasparam( gchar *param ) {
+  const gchar * const *strv = rpicam_params;
+  for( ; *strv != NULL; strv++ ) {
+    if ( g_str_equal (param, *strv) ) {
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
+
+gboolean server_gstsrc_configure( char *params ) {
+  GstRTSPMedia *media_video = NULL;
+  GstElement *pipeline = NULL;
+  GstElement *rpicamsrc = NULL;
+  gchar **tokens1 = NULL;
+  gchar **tokens2 = NULL;
+  guint i;
+  if ( params == NULL ) {
+    g_warning("server_gstsrc_configure: No valid params");
+    return FALSE;
+  }
+  tokens1 = g_strsplit(params, " ", -1);
+  for ( i = 0; tokens1 && tokens1[i]; i++ ) {
+    if ( g_strrstr(tokens1[i], "=")==NULL ) {
+      if ( G_IS_OBJECT(rpicamsrc) ) {
+        g_object_unref(rpicamsrc);
+      }
+      media_video = NULL;
+      pipeline = NULL;
+      rpicamsrc = NULL;
+      media_video = g_hash_table_lookup(hash_media, tokens1[i]);
+      if ( G_IS_OBJECT(media_video) ) {
+        pipeline = gst_rtsp_media_get_element(media_video);
+        if ( G_IS_OBJECT(pipeline) ) {
+          rpicamsrc = gst_bin_get_by_name(GST_BIN(pipeline), "picam1");
+          g_object_unref(pipeline);
+        } else {
+          g_warning("server_gstsrc_configure[%s] Element not found", tokens1[0]);
+        }
+      } else {
+        g_warning("server_gstsrc_configure[%s] No active media found", tokens1[i]);
+      }
+      continue;
+    }
+    if ( !G_IS_OBJECT(rpicamsrc) ) {
+      continue;
+    }
+    g_debug("server_gstsrc_configure[%s]\n", tokens1[i]);
+    tokens2 = g_strsplit(tokens1[i], "=", 2);
+    if ( g_strv_length(tokens2)!=2 ) {
+      g_strfreev(tokens2);
+      continue;
+    }
+    if ( !server_gstsrc_hasparam(tokens2[0]) ) {
+      g_warning("server_gstsrc_configure[%s][%s] Parameter not found", tokens2[0], tokens2[1]);
+      g_strfreev(tokens2);
+      continue;
+    }
+    gst_util_set_object_arg(G_OBJECT(rpicamsrc), tokens2[0], tokens2[1]);
+    g_strfreev(tokens2);
+  }
+  if ( G_IS_OBJECT(rpicamsrc) ) {
+    g_object_unref(rpicamsrc);
+  }
+  g_strfreev(tokens1);
+  return TRUE;
 }
 
 gint server_gstsrc_startgst_init (int *argc, char **argv[]) {
@@ -183,6 +264,9 @@ gint server_gstsrc_startgst_init (int *argc, char **argv[]) {
       goto failed;
     }
   }
+
+  /* create active media hash table */
+  hash_media = g_hash_table_new(g_str_hash, g_str_equal);
 
   /* create a server instance */
   server = gst_rtsp_server_new ();
