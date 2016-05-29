@@ -36,7 +36,10 @@ dnl give error and exit if we don't have pkgconfig
 AC_CHECK_PROG(HAVE_PKGCONFIG, pkg-config, [ ], [
   AC_MSG_ERROR([You need to have pkg-config installed!])
 ])
-AC_PATH_PROG(GLIB_MKENUMS, glib-mkenums)
+
+# Checks for libraries.
+PKG_PROG_PKG_CONFIG([0.24])
+PKG_CHECK_MODULES([glib], [glib-2.0 >= 2.28])
 
 PKG_CHECK_MODULES(GST, [
   gstreamer-1.0 >= $GST_REQUIRED

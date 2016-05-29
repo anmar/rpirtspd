@@ -9,11 +9,13 @@ rpirtspd_SOURCES = \
 	rpirtspd.c
 
 rpirtspd_CFLAGS = \
+	$(glib_CFLAGS) \
 	$(GST_CFLAGS) \
 	$(GSTRTSP_CFLAGS) \
 	$(ALSA_CFLAGS)
 
 rpirtspd_LDFLAGS = \
+	$(glib_LIBS) \
 	$(GSTRTSP_LIBS) \
 	$(GST_LIBS) \
 	$(ALSA_LIBS)
