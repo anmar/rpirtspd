@@ -38,7 +38,8 @@
 
 #include <alsasrc.h>
 
-gchar * audio_alsasrc_device_first( void ) {
+gchar ** audio_alsasrc_device_list( void ) {
+  GPtrArray *devices = g_ptr_array_new();
   int card = -1;
   int dev = -1;
   snd_ctl_card_info_t *info;
@@ -66,10 +67,10 @@ gchar * audio_alsasrc_device_first( void ) {
       if ((err = snd_ctl_pcm_info(handle, pcminfo)) < 0) {
         continue;
       }
-      snd_ctl_close(handle);
-      return g_strdup_printf("%d,%d", card, dev);
+      g_ptr_array_add(devices, (gpointer)g_strdup_printf("%d,%d", card, dev));
     }
     snd_ctl_close(handle);
   }
-  return NULL;
+  g_ptr_array_add(devices, NULL);
+  return (gchar **)g_ptr_array_free(devices, FALSE);
 }

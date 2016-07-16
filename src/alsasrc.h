@@ -37,7 +37,7 @@
 
 G_BEGIN_DECLS
 
-gchar * audio_alsasrc_device_first( void );
+gchar ** audio_alsasrc_device_list( void );
 
 G_END_DECLS
 

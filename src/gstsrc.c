@@ -96,18 +96,15 @@ static gchar * stream_pipeline_video( void ) {
       rs_args__video_width, rs_args__video_height, rs_args__video_frm );
   return pipeline;
 }
-static gchar * stream_pipeline_audio_device_first( void ) {
-  gchar *device = audio_alsasrc_device_first();
-  if ( !device ) {
+
+static gchar * stream_pipeline_audio( gchar **audio_devices, gint dpos ) {
+  if ( !audio_devices ) {
     return NULL;
   }
-  gchar *pipeline = g_strdup_printf("device=plughw:%s", device);
-  g_free(device);
-  return pipeline;
-  
-}
-static gchar * stream_pipeline_audio( void ) {
-  gchar *device = stream_pipeline_audio_device_first();
+  gchar *device = audio_devices[dpos];
+  if ( device ) {
+    device = g_strdup_printf("device=plughw:%s", device);
+  }
   if ( !device && !rs_args__audio_args ) {
     return NULL;
   }
@@ -120,13 +117,13 @@ static gchar * stream_pipeline_audio( void ) {
   return pipeline;
 }
 
-static void set_stream_main( GstRTSPMountPoints *mounts ) {
+static void set_stream_main( GstRTSPMountPoints *mounts, gchar **audio_devices ) {
   gchar *pipeline;
   GstRTSPMediaFactory *factory;
   factory = gst_rtsp_media_factory_new ();
   gst_rtsp_media_factory_set_shared(factory, TRUE);
   g_signal_connect (factory, "media-configure", (GCallback)media_configure, "main" );
-  pipeline = stream_pipeline(stream_pipeline_video(), stream_pipeline_audio());
+  pipeline = stream_pipeline(stream_pipeline_video(), stream_pipeline_audio(audio_devices, 0));
   if ( rs_args__out_verbose ) {
     g_print("set_stream_main: Pipeline [%s]\n", pipeline);
   }
@@ -256,6 +253,7 @@ gboolean server_gstsrc_configure( char *params ) {
 gint server_gstsrc_startgst_init (int *argc, char **argv[]) {
   GstRTSPServer *server;
   GstRTSPMountPoints *mounts;
+  gchar **audio_devices;
 
   gst_init (argc, argv);
 
@@ -268,6 +266,9 @@ gint server_gstsrc_startgst_init (int *argc, char **argv[]) {
   /* create active media hash table */
   hash_media = g_hash_table_new(g_str_hash, g_str_equal);
 
+  /* Get audio devices */
+  audio_devices = audio_alsasrc_device_list();
+
   /* create a server instance */
   server = gst_rtsp_server_new ();
 
@@ -279,13 +280,16 @@ gint server_gstsrc_startgst_init (int *argc, char **argv[]) {
   set_stream_test(mounts);
 
   /* Main stream (video+audio) */
-  set_stream_main(mounts);
+  set_stream_main(mounts, audio_devices);
 
   /* Video stream */
   set_stream_video(mounts);
 
   /* don't need the ref to the mapper anymore */
   g_object_unref (mounts);
+
+  /* don't need the audio devices anymore */
+  g_strfreev(audio_devices);
 
   if ( rs_args__listen_rtsp ) {
     if ( rs_args__bind_address ) {
