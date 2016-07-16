@@ -97,7 +97,7 @@ static gchar * stream_pipeline_video( void ) {
   return pipeline;
 }
 
-static gchar * stream_pipeline_audio( gchar **audio_devices, gint dpos ) {
+static gchar * stream_pipeline_audio( gchar **audio_devices, gint dpos, gint ppos ) {
   if ( !audio_devices ) {
     return NULL;
   }
@@ -109,12 +109,38 @@ static gchar * stream_pipeline_audio( gchar **audio_devices, gint dpos ) {
     return NULL;
   }
   gchar *pipeline =  g_strdup_printf("alsasrc %s !"
-    " queue ! audio/x-raw,rate=%d ! alawenc ! rtppcmapay name=pay1 pt=97",
-      rs_args__audio_args ? rs_args__audio_args : device, rs_args__audio_bitrate );
+    " queue ! audio/x-raw,rate=%d ! alawenc ! rtppcmapay name=pay%d pt=97",
+      rs_args__audio_args ? rs_args__audio_args : device, rs_args__audio_bitrate, ppos );
   if ( device ) {
     g_free(device);
   }
   return pipeline;
+}
+
+static void set_streams_audio( GstRTSPMountPoints *mounts, gchar **audio_devices ) {
+  int i;
+  if ( !audio_devices ) {
+    return;
+  }
+  for ( i=0; audio_devices[i]!=NULL; i++ ) {
+    gchar *mount_path;
+    gchar *pipeline = stream_pipeline_audio(audio_devices, i, 0);
+    if ( !pipeline ) {
+      continue;
+    }
+    GstRTSPMediaFactory *factory = gst_rtsp_media_factory_new ();
+
+    gst_rtsp_media_factory_set_shared(factory, TRUE);
+    if ( rs_args__out_verbose ) {
+      g_print("set_streams_audio[%d]: Pipeline [%s]\n", i+1, pipeline);
+    }
+    mount_path = g_strdup_printf("/audio%d", i+1);
+    gst_rtsp_media_factory_set_launch (factory, pipeline);
+    gst_rtsp_mount_points_add_factory (mounts, mount_path, factory);
+    if ( !rs_args__out_quiet ) {
+      g_print ("[rtsp://127.0.0.1:8554%s] Audio stream [alsa hw:%s]\n", mount_path, audio_devices[i]);
+    }
+  }
 }
 
 static void set_stream_main( GstRTSPMountPoints *mounts, gchar **audio_devices ) {
@@ -123,7 +149,7 @@ static void set_stream_main( GstRTSPMountPoints *mounts, gchar **audio_devices )
   factory = gst_rtsp_media_factory_new ();
   gst_rtsp_media_factory_set_shared(factory, TRUE);
   g_signal_connect (factory, "media-configure", (GCallback)media_configure, "main" );
-  pipeline = stream_pipeline(stream_pipeline_video(), stream_pipeline_audio(audio_devices, 0));
+  pipeline = stream_pipeline(stream_pipeline_video(), stream_pipeline_audio(audio_devices, 0, 1));
   if ( rs_args__out_verbose ) {
     g_print("set_stream_main: Pipeline [%s]\n", pipeline);
   }
@@ -284,6 +310,9 @@ gint server_gstsrc_startgst_init (int *argc, char **argv[]) {
 
   /* Video stream */
   set_stream_video(mounts);
+
+  /* Audio streams */
+  set_streams_audio(mounts, audio_devices);
 
   /* don't need the ref to the mapper anymore */
   g_object_unref (mounts);
