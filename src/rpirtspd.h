@@ -53,7 +53,9 @@ extern gboolean rs_args__out_quiet;
 extern gboolean rs_args__out_verbose;
 extern gboolean rs_args__mode_test;
 extern gboolean rs_args__listen_rtsp;
+#if HAVE_GIO_UNIX
 extern gboolean rs_args__listen_control;
+#endif
 
 G_END_DECLS
 

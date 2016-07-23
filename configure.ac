@@ -42,17 +42,15 @@ PKG_PROG_PKG_CONFIG([0.24])
 PKG_CHECK_MODULES([glib], [glib-2.0 >= 2.28])
 
 AC_ARG_ENABLE(
-  [disable-control],
+  [control],
   [AC_HELP_STRING(
-    [--disable-control],
-    [disable control socket]
+    [--enable-control],
+    [enable control socket]
   )],
-  [disable_gcontrol=${enableval}],
-  [disable_gcontrol=no]
+  [enable_gcontrol=${enableval}],
+  [enable_gcontrol=no]
 )
-if test x"$disable_gcontrol" = x"yes" ; then
-  AC_DEFINE(HAVE_GIO_UNIX, 0, "Define for gio-unix")
-else
+if test x"$enable_gcontrol" = x"yes" ; then
   PKG_CHECK_MODULES([gio], [gio-2.0 >= 2.28])
   PKG_CHECK_MODULES([gio_unix], [gio-unix-2.0 >= 2.28], [test_have_giounix=yes], [test_have_giounix=no])
   if test x"$test_have_giounix" = x"yes" ; then
@@ -60,6 +58,8 @@ else
   else
     AC_DEFINE(HAVE_GIO_UNIX, 0, "Define for gio-unix")
   fi
+else
+  AC_DEFINE(HAVE_GIO_UNIX, 0, "Define for gio-unix")
 fi
 
 PKG_CHECK_MODULES(GST, [
