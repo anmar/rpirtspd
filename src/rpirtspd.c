@@ -49,8 +49,9 @@ gint rs_args__video_width = 720;
 gint rs_args__video_height = 480;
 gint rs_args__video_frm = 25;
 gchar *rs_args__audio_args = NULL;
-gint rs_args__audio_bitrate = 8000;
+gint rs_args__audio_bitrate = 128000;
 gint rs_args__audio_channels = 1;
+gint rs_args__audio_clockrate = 44100;
 gboolean rs_args__audio_compress = FALSE;
 gboolean rs_args__out_quiet = FALSE;
 gboolean rs_args__out_verbose = FALSE;
@@ -76,7 +77,8 @@ int main (int argc, char *argv[]) {
     { "video-height", 0, 0, G_OPTION_ARG_INT, &rs_args__video_height, "Video height", "480" },
     { "video-framerate", 0, 0, G_OPTION_ARG_INT, &rs_args__video_frm, "Video frame rate", "25" },
     { "audio-args", 0, 0, G_OPTION_ARG_STRING, &rs_args__audio_args, "alsasrc audio pipeline arguments", "device=..." },
-    { "audio-bitrate", 0, 0, G_OPTION_ARG_INT, &rs_args__audio_bitrate, "Audio bitrate", "8000" },
+    { "audio-clockrate", 0, 0, G_OPTION_ARG_INT, &rs_args__audio_clockrate, "Audio clock rate", "44100" },
+    { "audio-bitrate", 0, 0, G_OPTION_ARG_INT, &rs_args__audio_bitrate, "Audio bitrate", "128000" },
     { "audio-channels", 0, 0, G_OPTION_ARG_INT, &rs_args__audio_channels, "Audio channels", "1" },
     { "audio-compress", 0, 0, G_OPTION_ARG_NONE, &rs_args__audio_compress, "Enable audio stream compression", NULL },
     { "quiet", 'q', 0, G_OPTION_ARG_NONE, &rs_args__out_quiet, "Quiet", NULL },
