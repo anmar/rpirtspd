@@ -108,9 +108,13 @@ static gchar * stream_pipeline_audio( gchar **audio_devices, gint dpos, gint ppo
   if ( !device && !rs_args__audio_args ) {
     return NULL;
   }
-  gchar *pipeline =  g_strdup_printf("alsasrc %s !"
-    " queue ! audio/x-raw,rate=%d ! alawenc ! rtppcmapay name=pay%d pt=97",
-      rs_args__audio_args ? rs_args__audio_args : device, rs_args__audio_bitrate, ppos );
+  gchar *pipeline = g_strdup_printf("alsasrc %s !"
+    " queue ! audio/x-raw,channels=%d,rate=%d ! audioresample ! audioconvert ! %s ! %s name=pay%d pt=97",
+      ppos==1 && rs_args__audio_args ? rs_args__audio_args : device,
+      rs_args__audio_channels, rs_args__audio_bitrate,
+      rs_args__audio_compress ? "vorbisenc" : "alawenc",
+      rs_args__audio_compress ? "rtpvorbispay" : "rtppcmapay",
+       ppos );
   if ( device ) {
     g_free(device);
   }
