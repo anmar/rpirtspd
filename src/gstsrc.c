@@ -41,7 +41,7 @@
 #include "alsasrc.h"
 
 static GHashTable *hash_media = NULL;
-static const gchar *rpicam_params[] = { "hflip", "vflip", "roi-x", "roi-y", "roi-w", "roi-h", NULL };
+static const gchar *rpicam_params[] = { "hflip", "vflip", "roi-x", "roi-y", "roi-w", "roi-h", "sharpness", "contrast", "brightness", "saturation", "iso", "shutter-speed", "drc", "vstab", "exposure-mode", "exposure-compensation", "metering-mode", "image-effect", "awb-mode", "annotation-mode", "annotation-text", "annotation-text-size", "annotation-text-colour", "annotation-text-bg-colour", NULL };
 
 static void media_configure (GstRTSPMediaFactory * factory, GstRTSPMedia * media, gpointer user_data) {
   if ( hash_media == NULL ) {
