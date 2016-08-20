@@ -223,7 +223,7 @@ gboolean server_gstsrc_hasparam( gchar *param ) {
   return FALSE;
 }
 
-gboolean server_gstsrc_configure( char *params ) {
+gboolean server_gstsrc_configure( gchar *params ) {
   GstRTSPMedia *media_video = NULL;
   GstElement *pipeline = NULL;
   GstElement *rpicamsrc = NULL;
@@ -257,21 +257,42 @@ gboolean server_gstsrc_configure( char *params ) {
       }
       continue;
     }
-    if ( !G_IS_OBJECT(rpicamsrc) ) {
-      continue;
-    }
     g_debug("server_gstsrc_configure[%s]\n", tokens1[i]);
     tokens2 = g_strsplit(tokens1[i], "=", 2);
     if ( g_strv_length(tokens2)!=2 ) {
       g_strfreev(tokens2);
       continue;
     }
+    gchar *token = g_strdup(tokens2[1]);
+    if ( g_str_has_prefix(token, "\"") ) {
+      if ( strlen(token)==1 || !g_str_has_suffix(token, "\"") ) {
+        for ( i++; tokens1 && tokens1[i]; i++ ) {
+          gchar *token2 = g_strjoin(" ", token, tokens1[i], NULL);
+          g_free(token);
+          token = token2;
+          if ( g_str_has_suffix(token, "\"") ) {
+            break;
+          }
+        }
+      }
+    }
+    if ( g_str_has_prefix(token, "\"") ) {
+      memmove(token, token+1, strlen(token));
+    }
+    if ( g_str_has_suffix(token, "\"") ) {
+      token[strlen(token) - 1] = '\0';
+    }
     if ( !server_gstsrc_hasparam(tokens2[0]) ) {
-      g_warning("server_gstsrc_configure[%s][%s] Parameter not found", tokens2[0], tokens2[1]);
+      g_warning("server_gstsrc_configure[%s][%s] Parameter not found", tokens2[0], token);
       g_strfreev(tokens2);
+      g_free(token);
       continue;
     }
-    gst_util_set_object_arg(G_OBJECT(rpicamsrc), tokens2[0], tokens2[1]);
+    g_debug("server_gstsrc_configure[%s][%s]\n", tokens2[0], token);
+    if ( G_IS_OBJECT(rpicamsrc) ) {
+      gst_util_set_object_arg(G_OBJECT(rpicamsrc), tokens2[0], token);
+    }
+    g_free(token);
     g_strfreev(tokens2);
   }
   if ( G_IS_OBJECT(rpicamsrc) ) {

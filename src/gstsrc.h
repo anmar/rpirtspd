@@ -30,6 +30,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <string.h>
+
 #include <glib.h>
 
 #include <gst/gst.h>

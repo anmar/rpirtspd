@@ -41,7 +41,7 @@
 
 #if HAVE_GIO_UNIX
 gboolean gcontrol_incoming_callback( GSocketService *service, GSocketConnection *connection, GObject *source_object, gpointer user_data ) {
-  char buffer[2048];
+  gchar buffer[2048];
   gssize bytes;
   GError *error = NULL;
   GInputStream *istream;
