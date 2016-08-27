@@ -42,6 +42,7 @@
 
 static GHashTable *hash_media = NULL;
 static const gchar *rpicam_params[] = { "hflip", "vflip", "roi-x", "roi-y", "roi-w", "roi-h", "sharpness", "contrast", "brightness", "saturation", "iso", "shutter-speed", "drc", "vstab", "exposure-mode", "exposure-compensation", "metering-mode", "image-effect", "awb-mode", "annotation-mode", "annotation-text", "annotation-text-size", "annotation-text-colour", "annotation-text-bg-colour", NULL };
+static const gchar *audioq_params[] = { "flush-on-eos", "leaky",  "max-size-buffers", "max-size-bytes", "max-size-time", "min-threshold-buffers", "min-threshold-bytes", "min-threshold-time", "silent" };
 
 static void media_configure (GstRTSPMediaFactory * factory, GstRTSPMedia * media, gpointer user_data) {
   if ( hash_media == NULL ) {
@@ -130,16 +131,19 @@ static void set_streams_audio( GstRTSPMountPoints *mounts, gchar **audio_devices
     return;
   }
   for ( i=0; audio_devices[i]!=NULL; i++ ) {
+    gchar *stream_name;
     gchar *mount_path;
     gchar *pipeline = stream_pipeline_audio(audio_devices, i, 0);
     if ( !pipeline ) {
       continue;
     }
     GstRTSPMediaFactory *factory = gst_rtsp_media_factory_new ();
+    stream_name = g_strdup_printf("audio%d", i+1);
 
     gst_rtsp_media_factory_set_shared(factory, TRUE);
+    g_signal_connect (factory, "media-configure", (GCallback)media_configure, stream_name );
     if ( rs_args__out_verbose ) {
-      g_print("set_streams_audio[%d]: Pipeline [%s]\n", i+1, pipeline);
+      g_print("set_streams_audio[%s]: Pipeline [%s]\n", stream_name, pipeline);
     }
     mount_path = g_strdup_printf("/audio%d", i+1);
     gst_rtsp_media_factory_set_launch (factory, pipeline);
@@ -288,6 +292,8 @@ gboolean server_gstsrc_configure( gchar *params ) {
     }
     if ( server_gstsrc_hasparam(rpicam_params, tokens2[0]) ) {
       gstelement = gst_bin_get_by_name(GST_BIN(pipeline), "picam1");
+    } else if ( server_gstsrc_hasparam(audioq_params, tokens2[0]) ) {
+      gstelement = gst_bin_get_by_name(GST_BIN(pipeline), "qaudio1");
     } else {
       g_warning("server_gstsrc_configure[%s][%s] Parameter not found", tokens2[0], token);
       g_strfreev(tokens2);
