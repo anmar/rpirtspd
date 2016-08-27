@@ -215,8 +215,7 @@ static void set_stream_video( GstRTSPMountPoints *mounts ) {
   return;
 }
 
-gboolean server_gstsrc_hasparam( gchar *param ) {
-  const gchar * const *strv = rpicam_params;
+gboolean server_gstsrc_hasparam( const gchar * const *strv, gchar *param ) {
   for( ; *strv != NULL; strv++ ) {
     if ( g_str_equal (param, *strv) ) {
       return TRUE;
@@ -228,7 +227,7 @@ gboolean server_gstsrc_hasparam( gchar *param ) {
 gboolean server_gstsrc_configure( gchar *params ) {
   GstRTSPMedia *media_video = NULL;
   GstElement *pipeline = NULL;
-  GstElement *rpicamsrc = NULL;
+  GstElement *gstelement = NULL;
   gchar **tokens1 = NULL;
   gchar **tokens2 = NULL;
   guint i;
@@ -238,25 +237,28 @@ gboolean server_gstsrc_configure( gchar *params ) {
   }
   tokens1 = g_strsplit(params, " ", -1);
   for ( i = 0; tokens1 && tokens1[i]; i++ ) {
+    if ( G_IS_OBJECT(gstelement) ) {
+      g_object_unref(gstelement);
+    }
+    gstelement = NULL;
     if ( g_strrstr(tokens1[i], "=")==NULL ) {
-      if ( G_IS_OBJECT(rpicamsrc) ) {
-        g_object_unref(rpicamsrc);
+      if ( G_IS_OBJECT(pipeline) ) {
+        g_object_unref(pipeline);
       }
-      media_video = NULL;
       pipeline = NULL;
-      rpicamsrc = NULL;
       media_video = g_hash_table_lookup(hash_media, tokens1[i]);
       if ( G_IS_OBJECT(media_video) ) {
         pipeline = gst_rtsp_media_get_element(media_video);
-        if ( G_IS_OBJECT(pipeline) ) {
-          rpicamsrc = gst_bin_get_by_name(GST_BIN(pipeline), "picam1");
-          g_object_unref(pipeline);
-        } else {
-          g_warning("server_gstsrc_configure[%s] Element not found", tokens1[0]);
+        if ( ! G_IS_OBJECT(pipeline) ) {
+          g_warning("server_gstsrc_configure[%s] Root element not found", tokens1[i]);
         }
       } else {
         g_warning("server_gstsrc_configure[%s] No active media found", tokens1[i]);
       }
+      continue;
+    }
+    if ( ! G_IS_OBJECT(pipeline) ) {
+      g_warning("server_gstsrc_configure[%s] Element not found", tokens1[i]);
       continue;
     }
     g_debug("server_gstsrc_configure[%s]\n", tokens1[i]);
@@ -284,21 +286,28 @@ gboolean server_gstsrc_configure( gchar *params ) {
     if ( g_str_has_suffix(token, "\"") ) {
       token[strlen(token) - 1] = '\0';
     }
-    if ( !server_gstsrc_hasparam(tokens2[0]) ) {
+    if ( server_gstsrc_hasparam(rpicam_params, tokens2[0]) ) {
+      gstelement = gst_bin_get_by_name(GST_BIN(pipeline), "picam1");
+    } else {
       g_warning("server_gstsrc_configure[%s][%s] Parameter not found", tokens2[0], token);
       g_strfreev(tokens2);
       g_free(token);
       continue;
     }
     g_debug("server_gstsrc_configure[%s][%s]\n", tokens2[0], token);
-    if ( G_IS_OBJECT(rpicamsrc) ) {
-      gst_util_set_object_arg(G_OBJECT(rpicamsrc), tokens2[0], token);
+    if ( G_IS_OBJECT(gstelement) ) {
+      gst_util_set_object_arg(G_OBJECT(gstelement), tokens2[0], token);
+    } else {
+      g_warning("server_gstsrc_configure[%s][%s] element not found", tokens2[0], token);
     }
     g_free(token);
     g_strfreev(tokens2);
   }
-  if ( G_IS_OBJECT(rpicamsrc) ) {
-    g_object_unref(rpicamsrc);
+  if ( G_IS_OBJECT(gstelement) ) {
+    g_object_unref(gstelement);
+  }
+  if ( G_IS_OBJECT(pipeline) ) {
+    g_object_unref(pipeline);
   }
   g_strfreev(tokens1);
   return TRUE;
