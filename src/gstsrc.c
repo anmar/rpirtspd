@@ -42,6 +42,7 @@
 
 static GHashTable *hash_media = NULL;
 static const gchar *rpicam_params[] = { "hflip", "vflip", "roi-x", "roi-y", "roi-w", "roi-h", "sharpness", "contrast", "brightness", "saturation", "iso", "shutter-speed", "drc", "vstab", "exposure-mode", "exposure-compensation", "metering-mode", "image-effect", "awb-mode", "annotation-mode", "annotation-text", "annotation-text-size", "annotation-text-colour", "annotation-text-bg-colour", NULL };
+static const gchar *audio_params[] = { "device" };
 static const gchar *audioq_params[] = { "flush-on-eos", "leaky",  "max-size-buffers", "max-size-bytes", "max-size-time", "min-threshold-buffers", "min-threshold-bytes", "min-threshold-time", "silent" };
 
 static void media_configure (GstRTSPMediaFactory * factory, GstRTSPMedia * media, gpointer user_data) {
@@ -292,6 +293,8 @@ gboolean server_gstsrc_configure( gchar *params ) {
     }
     if ( server_gstsrc_hasparam(rpicam_params, tokens2[0]) ) {
       gstelement = gst_bin_get_by_name(GST_BIN(pipeline), "picam1");
+    } else if ( server_gstsrc_hasparam(audio_params, tokens2[0]) ) {
+      gstelement = gst_bin_get_by_name(GST_BIN(pipeline), "alsa1");
     } else if ( server_gstsrc_hasparam(audioq_params, tokens2[0]) ) {
       gstelement = gst_bin_get_by_name(GST_BIN(pipeline), "qaudio1");
     } else {
