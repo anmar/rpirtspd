@@ -49,6 +49,7 @@ extern gchar *rs_args__audio_args;
 extern gint rs_args__audio_bitrate;
 extern gint rs_args__audio_channels;
 extern gint rs_args__audio_clockrate;
+extern gint rs_args__audio_delay;
 extern gboolean rs_args__audio_compress;
 extern gboolean rs_args__out_quiet;
 extern gboolean rs_args__out_verbose;

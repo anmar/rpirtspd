@@ -108,9 +108,11 @@ static gchar * stream_pipeline_audio( gchar **audio_devices, gint dpos, gint ppo
   if ( !device && !rs_args__audio_args ) {
     return NULL;
   }
-  gchar *pipeline = g_strdup_printf("alsasrc %s !"
-    " queue ! audio/x-raw,channels=%d,rate=%d ! audioresample ! audioconvert ! %s bitrate=%d ! %s name=pay%d pt=97",
+  gchar *pipeline = g_strdup_printf("alsasrc name=alsa1 %s !"
+    " queue name=qaudio1 leaky=no max-size-time=4500000000 max-size-buffers=0 min-threshold-time=%d !"
+    " audio/x-raw,channels=%d,rate=%d ! audioresample ! audioconvert ! %s bitrate=%d ! %s name=pay%d pt=97",
       ppos==1 && rs_args__audio_args ? rs_args__audio_args : device,
+      rs_args__audio_delay*1000000,
       rs_args__audio_channels, rs_args__audio_clockrate,
       rs_args__audio_compress ? "voaacenc" : "alawenc",
       rs_args__audio_bitrate,
