@@ -44,6 +44,7 @@ gchar *rs_args__control_socket = NULL;
 gboolean rs_args__control_send = FALSE;
 gchar *rs_args__bind_address = NULL;
 gchar *rs_args__bind_port = NULL;
+gchar *rs_args__video_source = NULL;
 gchar *rs_args__video_args = NULL;
 gchar *rs_args__video_profile = NULL;
 gint rs_args__video_width = 720;
@@ -74,7 +75,8 @@ int main (int argc, char *argv[]) {
     { "control-send", 0, 0, G_OPTION_ARG_NONE, &rs_args__control_send, "Send control commands", NULL },
     { "bind-address", 0, 0, G_OPTION_ARG_STRING, &rs_args__bind_address, "Local IP address to bind", "0.0.0.0" },
     { "bind-port", 0, 0, G_OPTION_ARG_STRING, &rs_args__bind_port, "Listen port", "8554" },
-    { "video-args", 0, 0, G_OPTION_ARG_STRING, &rs_args__video_args, "rpicamsrc video pipeline arguments", "bitrate=..." },
+    { "video-source", 0, 0, G_OPTION_ARG_STRING, &rs_args__video_source, "gstreamer video source", "rpicamsrc" },
+    { "video-args", 0, 0, G_OPTION_ARG_STRING, &rs_args__video_args, "video source arguments", "bitrate=..." },
     { "video-profile", 0, 0, G_OPTION_ARG_STRING, &rs_args__video_profile, "h264 profile", "baseline" },
     { "video-width", 0, 0, G_OPTION_ARG_INT, &rs_args__video_width, "Video width", "720" },
     { "video-height", 0, 0, G_OPTION_ARG_INT, &rs_args__video_height, "Video height", "480" },

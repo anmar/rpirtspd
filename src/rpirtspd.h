@@ -41,6 +41,7 @@ extern gchar *rs_args__control_socket;
 extern gboolean rs_args__control_send;
 extern gchar *rs_args__bind_address;
 extern gchar *rs_args__bind_port;
+extern gchar *rs_args__video_source;
 extern gchar *rs_args__video_args;
 extern gchar *rs_args__video_profile;
 extern gint rs_args__video_width;
