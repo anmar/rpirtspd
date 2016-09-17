@@ -92,10 +92,11 @@ static gchar * stream_pipeline( gchar *pipeline_video, gchar *pipeline_audio ) {
 
 static gchar * stream_pipeline_video( void ) {
   gchar *pipeline = g_strdup_printf("rpicamsrc name=videosrc1 %s !"
-    " video/x-h264,width=%d,height=%d,framerate=%d/1 ! "
+    " video/x-h264,width=%d,height=%d,framerate=%d/1,profile=%s !"
     "h264parse ! rtph264pay config-interval=5 pt=96 name=pay0",
       rs_args__video_args ? rs_args__video_args : "bitrate=1000000",
-      rs_args__video_width, rs_args__video_height, rs_args__video_frm );
+      rs_args__video_width, rs_args__video_height, rs_args__video_frm,
+      rs_args__video_profile ? rs_args__video_profile : "baseline");
   return pipeline;
 }
 
