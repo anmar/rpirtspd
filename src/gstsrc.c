@@ -91,7 +91,7 @@ static gchar * stream_pipeline( gchar *pipeline_video, gchar *pipeline_audio ) {
 }
 
 static gchar * stream_pipeline_video( void ) {
-  gchar *pipeline = g_strdup_printf("rpicamsrc name=picam1 %s !"
+  gchar *pipeline = g_strdup_printf("rpicamsrc name=videosrc1 %s !"
     " video/x-h264,width=%d,height=%d,framerate=%d/1 ! "
     "h264parse ! rtph264pay config-interval=5 pt=96 name=pay0",
       rs_args__video_args ? rs_args__video_args : "bitrate=1000000",
@@ -110,7 +110,7 @@ static gchar * stream_pipeline_audio( gchar **audio_devices, gint dpos, gint ppo
   if ( !device && !rs_args__audio_args ) {
     return NULL;
   }
-  gchar *pipeline = g_strdup_printf("alsasrc name=alsa1 %s !"
+  gchar *pipeline = g_strdup_printf("alsasrc name=audiosrc1 %s !"
     " queue name=qaudio1 leaky=no max-size-time=4500000000 max-size-buffers=0 min-threshold-time=%d !"
     " audio/x-raw,channels=%d,rate=%d ! audioresample ! audioconvert ! %s bitrate=%d ! %s name=pay%d pt=97",
       ppos==1 && rs_args__audio_args ? rs_args__audio_args : device,
@@ -292,9 +292,9 @@ gboolean server_gstsrc_configure( gchar *params ) {
       token[strlen(token) - 1] = '\0';
     }
     if ( server_gstsrc_hasparam(rpicam_params, tokens2[0]) ) {
-      gstelement = gst_bin_get_by_name(GST_BIN(pipeline), "picam1");
+      gstelement = gst_bin_get_by_name(GST_BIN(pipeline), "videosrc1");
     } else if ( server_gstsrc_hasparam(audio_params, tokens2[0]) ) {
-      gstelement = gst_bin_get_by_name(GST_BIN(pipeline), "alsa1");
+      gstelement = gst_bin_get_by_name(GST_BIN(pipeline), "audiosrc1");
     } else if ( server_gstsrc_hasparam(audioq_params, tokens2[0]) ) {
       gstelement = gst_bin_get_by_name(GST_BIN(pipeline), "qaudio1");
     } else {
