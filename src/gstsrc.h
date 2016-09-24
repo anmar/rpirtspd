@@ -45,6 +45,7 @@ G_BEGIN_DECLS
 
 gint server_gstsrc_startgst_init (int *argc, char **argv[]);
 gboolean server_gstsrc_configure( char *params );
+gboolean server_gstsrc_reconfigure ( const gchar *stream_name, GstRTSPMedia *media );
 
 G_END_DECLS
 

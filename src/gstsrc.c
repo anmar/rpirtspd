@@ -41,6 +41,7 @@
 #include "alsasrc.h"
 
 static GHashTable *hash_media = NULL;
+static GHashTable *hash_opts = NULL;
 static const gchar *rpicam_params[] = { "hflip", "vflip", "roi-x", "roi-y", "roi-w", "roi-h", "sharpness", "contrast", "brightness", "saturation", "iso", "shutter-speed", "drc", "vstab", "exposure-mode", "exposure-compensation", "metering-mode", "image-effect", "awb-mode", "annotation-mode", "annotation-text", "annotation-text-size", "annotation-text-colour", "annotation-text-bg-colour", NULL };
 static const gchar *audio_params[] = { "device" };
 static const gchar *audioq_params[] = { "flush-on-eos", "leaky",  "max-size-buffers", "max-size-bytes", "max-size-time", "min-threshold-buffers", "min-threshold-bytes", "min-threshold-time", "silent" };
@@ -50,6 +51,9 @@ static void media_configure (GstRTSPMediaFactory * factory, GstRTSPMedia * media
     return;
   }
   g_hash_table_insert(hash_media, user_data, media);
+  if ( rs_args__control_persist ) {
+    server_gstsrc_reconfigure(user_data, media);
+  }
   return;
 }
 
@@ -248,6 +252,12 @@ gboolean server_gstsrc_configure( gchar *params ) {
     if ( G_IS_OBJECT(gstelement) ) {
       g_object_unref(gstelement);
     }
+    if ( g_ascii_strcasecmp(tokens1[i], "reset")==0 ) {
+      if ( rs_args__control_persist ) {
+        g_hash_table_remove_all(hash_opts);
+      }
+      continue;
+    }
     gstelement = NULL;
     if ( g_strrstr(tokens1[i], "=")==NULL ) {
       if ( G_IS_OBJECT(pipeline) ) {
@@ -309,6 +319,9 @@ gboolean server_gstsrc_configure( gchar *params ) {
     g_debug("server_gstsrc_configure[%s][%s]\n", tokens2[0], token);
     if ( G_IS_OBJECT(gstelement) ) {
       gst_util_set_object_arg(G_OBJECT(gstelement), tokens2[0], token);
+      if ( rs_args__control_persist ) {
+        g_hash_table_insert(hash_opts, g_strdup(tokens2[0]), g_strdup(token));
+      }
     } else {
       g_warning("server_gstsrc_configure[%s][%s] element not found", tokens2[0], token);
     }
@@ -322,6 +335,33 @@ gboolean server_gstsrc_configure( gchar *params ) {
     g_object_unref(pipeline);
   }
   g_strfreev(tokens1);
+  return TRUE;
+}
+gboolean server_gstsrc_reconfigure ( const gchar *stream_name, GstRTSPMedia *media ) {
+  GstElement *pipeline = NULL;
+  GstElement *gstelement = NULL;
+  GHashTableIter iter;
+  gpointer key, value;
+  pipeline = gst_rtsp_media_get_element(media);
+  if ( ! G_IS_OBJECT(pipeline) ) {
+    g_warning("server_gstsrc_reconfigure[%s] Root element not found", stream_name);
+    return FALSE;
+  }
+  g_hash_table_iter_init(&iter, hash_opts);
+  while ( g_hash_table_iter_next (&iter, &key, &value) ) {
+    gstelement = NULL;
+    if ( server_gstsrc_hasparam(rpicam_params, key) ) {
+      gstelement = gst_bin_get_by_name(GST_BIN(pipeline), "videosrc1");
+    } else if ( server_gstsrc_hasparam(audio_params, key) ) {
+      gstelement = gst_bin_get_by_name(GST_BIN(pipeline), "audiosrc1");
+    } else if ( server_gstsrc_hasparam(audioq_params, key) ) {
+      gstelement = gst_bin_get_by_name(GST_BIN(pipeline), "qaudio1");
+    }
+    if ( G_IS_OBJECT(gstelement) ) {
+      g_debug("server_gstsrc_reconfigure[%s][%s]\n", stream_name, (gchar *)key);
+      gst_util_set_object_arg(G_OBJECT(gstelement), key, value);
+    }
+  }
   return TRUE;
 }
 
@@ -340,6 +380,11 @@ gint server_gstsrc_startgst_init (int *argc, char **argv[]) {
 
   /* create active media hash table */
   hash_media = g_hash_table_new(g_str_hash, g_str_equal);
+
+  /* create persist options hash table */
+  if ( rs_args__control_persist ) {
+    hash_opts = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
+  }
 
   /* Get audio devices */
   audio_devices = audio_alsasrc_device_list();

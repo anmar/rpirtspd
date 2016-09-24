@@ -39,6 +39,7 @@ G_BEGIN_DECLS
 
 extern gchar *rs_args__control_socket;
 extern gboolean rs_args__control_send;
+extern gboolean rs_args__control_persist;
 extern gchar *rs_args__bind_address;
 extern gchar *rs_args__bind_port;
 extern gchar *rs_args__video_source;

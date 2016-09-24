@@ -42,6 +42,7 @@
 
 gchar *rs_args__control_socket = NULL;
 gboolean rs_args__control_send = FALSE;
+gboolean rs_args__control_persist = FALSE;
 gchar *rs_args__bind_address = NULL;
 gchar *rs_args__bind_port = NULL;
 gchar *rs_args__video_source = NULL;
@@ -73,6 +74,7 @@ int main (int argc, char *argv[]) {
   {
     { "control-path", 0, 0, G_OPTION_ARG_STRING, &rs_args__control_socket, "Control socket path", NULL },
     { "control-send", 0, 0, G_OPTION_ARG_NONE, &rs_args__control_send, "Send control commands", NULL },
+    { "control-persist", 0, 0, G_OPTION_ARG_NONE, &rs_args__control_persist, "Persist control command changes", NULL },
     { "bind-address", 0, 0, G_OPTION_ARG_STRING, &rs_args__bind_address, "Local IP address to bind", "0.0.0.0" },
     { "bind-port", 0, 0, G_OPTION_ARG_STRING, &rs_args__bind_port, "Listen port", "8554" },
     { "video-source", 0, 0, G_OPTION_ARG_STRING, &rs_args__video_source, "gstreamer video source", "rpicamsrc" },
