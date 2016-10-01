@@ -43,6 +43,7 @@
 static GHashTable *hash_media = NULL;
 static GHashTable *hash_opts = NULL;
 static const gchar *rpicam_params[] = { "camera-number", "bitrate", "sensor-mode", "quantisation-parameter", "do-timestamp", "rotation", "hflip", "vflip", "roi-x", "roi-y", "roi-w", "roi-h", "sharpness", "contrast", "brightness", "saturation", "iso", "inline-headers", "shutter-speed", "drc", "vstab", "video-stabilisation", "exposure-mode", "exposure-compensation", "metering-mode", "image-effect", "awb-mode", "awb-gain-red", "awb-gain-blue", "keyframe-interval", "intra-refresh-type", "annotation-mode", "annotation-text", "annotation-text-size", "annotation-text-colour", "annotation-text-bg-colour", NULL };
+static const gchar *videocaps_params[] = { "caps", NULL };
 static const gchar *audio_params[] = { "device", NULL };
 static const gchar *audioq_params[] = { "flush-on-eos", "leaky",  "max-size-buffers", "max-size-bytes", "max-size-time", "min-threshold-buffers", "min-threshold-bytes", "min-threshold-time", "silent", NULL };
 
@@ -96,7 +97,7 @@ static gchar * stream_pipeline( gchar *pipeline_video, gchar *pipeline_audio ) {
 
 static gchar * stream_pipeline_video( void ) {
   gchar *pipeline = g_strdup_printf("%s name=videosrc1 %s !"
-    " video/x-h264,width=%d,height=%d,framerate=%d/1,profile=%s !"
+    " capsfilter caps=video/x-h264,width=%d,height=%d,framerate=%d/1,profile=%s name=videocaps1 !"
     " queue leaky=downstream max-size-time=0 max-size-buffers=2 !"
     " h264parse ! rtph264pay config-interval=1 pt=96 name=pay0",
       rs_args__video_source ? rs_args__video_source : "rpicamsrc",
@@ -304,6 +305,10 @@ gboolean server_gstsrc_configure( gchar *params ) {
       if ( G_IS_OBJECT(pipeline) ) {
         gstelement = gst_bin_get_by_name(GST_BIN(pipeline), "videosrc1");
       }
+    } else if ( server_gstsrc_hasparam(videocaps_params, tokens2[0]) ) {
+      if ( G_IS_OBJECT(pipeline) ) {
+        gstelement = gst_bin_get_by_name(GST_BIN(pipeline), "videocaps1");
+      }
     } else if ( server_gstsrc_hasparam(audio_params, tokens2[0]) ) {
       if ( G_IS_OBJECT(pipeline) ) {
         gstelement = gst_bin_get_by_name(GST_BIN(pipeline), "audiosrc1");
@@ -354,6 +359,8 @@ gboolean server_gstsrc_reconfigure ( const gchar *stream_name, GstRTSPMedia *med
     gstelement = NULL;
     if ( server_gstsrc_hasparam(rpicam_params, key) ) {
       gstelement = gst_bin_get_by_name(GST_BIN(pipeline), "videosrc1");
+    } else if ( server_gstsrc_hasparam(videocaps_params, key) ) {
+      gstelement = gst_bin_get_by_name(GST_BIN(pipeline), "videocaps1");
     } else if ( server_gstsrc_hasparam(audio_params, key) ) {
       gstelement = gst_bin_get_by_name(GST_BIN(pipeline), "audiosrc1");
     } else if ( server_gstsrc_hasparam(audioq_params, key) ) {
