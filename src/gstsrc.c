@@ -43,8 +43,8 @@
 static GHashTable *hash_media = NULL;
 static GHashTable *hash_opts = NULL;
 static const gchar *rpicam_params[] = { "camera-number", "bitrate", "sensor-mode", "quantisation-parameter", "do-timestamp", "rotation", "hflip", "vflip", "roi-x", "roi-y", "roi-w", "roi-h", "sharpness", "contrast", "brightness", "saturation", "iso", "inline-headers", "shutter-speed", "drc", "vstab", "video-stabilisation", "exposure-mode", "exposure-compensation", "metering-mode", "image-effect", "awb-mode", "awb-gain-red", "awb-gain-blue", "keyframe-interval", "intra-refresh-type", "annotation-mode", "annotation-text", "annotation-text-size", "annotation-text-colour", "annotation-text-bg-colour", NULL };
-static const gchar *audio_params[] = { "device" };
-static const gchar *audioq_params[] = { "flush-on-eos", "leaky",  "max-size-buffers", "max-size-bytes", "max-size-time", "min-threshold-buffers", "min-threshold-bytes", "min-threshold-time", "silent" };
+static const gchar *audio_params[] = { "device", NULL };
+static const gchar *audioq_params[] = { "flush-on-eos", "leaky",  "max-size-buffers", "max-size-bytes", "max-size-time", "min-threshold-buffers", "min-threshold-bytes", "min-threshold-time", "silent", NULL };
 
 static void media_configure (GstRTSPMediaFactory * factory, GstRTSPMedia * media, gpointer user_data) {
   if ( hash_media == NULL ) {
