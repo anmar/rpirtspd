@@ -271,12 +271,8 @@ gboolean server_gstsrc_configure( gchar *params ) {
           g_warning("server_gstsrc_configure[%s] Root element not found", tokens1[i]);
         }
       } else {
-        g_warning("server_gstsrc_configure[%s] No active media found", tokens1[i]);
+        g_debug("server_gstsrc_configure[%s] No active media found", tokens1[i]);
       }
-      continue;
-    }
-    if ( ! G_IS_OBJECT(pipeline) ) {
-      g_warning("server_gstsrc_configure[%s] Element not found", tokens1[i]);
       continue;
     }
     g_debug("server_gstsrc_configure[%s]\n", tokens1[i]);
@@ -305,25 +301,31 @@ gboolean server_gstsrc_configure( gchar *params ) {
       token[strlen(token) - 1] = '\0';
     }
     if ( server_gstsrc_hasparam(rpicam_params, tokens2[0]) ) {
-      gstelement = gst_bin_get_by_name(GST_BIN(pipeline), "videosrc1");
+      if ( G_IS_OBJECT(pipeline) ) {
+        gstelement = gst_bin_get_by_name(GST_BIN(pipeline), "videosrc1");
+      }
     } else if ( server_gstsrc_hasparam(audio_params, tokens2[0]) ) {
-      gstelement = gst_bin_get_by_name(GST_BIN(pipeline), "audiosrc1");
+      if ( G_IS_OBJECT(pipeline) ) {
+        gstelement = gst_bin_get_by_name(GST_BIN(pipeline), "audiosrc1");
+      }
     } else if ( server_gstsrc_hasparam(audioq_params, tokens2[0]) ) {
-      gstelement = gst_bin_get_by_name(GST_BIN(pipeline), "qaudio1");
+      if ( G_IS_OBJECT(pipeline) ) {
+        gstelement = gst_bin_get_by_name(GST_BIN(pipeline), "qaudio1");
+      }
     } else {
       g_warning("server_gstsrc_configure[%s][%s] Parameter not found", tokens2[0], token);
       g_strfreev(tokens2);
       g_free(token);
       continue;
     }
-    g_debug("server_gstsrc_configure[%s][%s]\n", tokens2[0], token);
+    g_debug("server_gstsrc_configure[%s][%s]", tokens2[0], token);
+    if ( rs_args__control_persist ) {
+      g_hash_table_insert(hash_opts, g_strdup(tokens2[0]), g_strdup(token));
+    }
     if ( G_IS_OBJECT(gstelement) ) {
       gst_util_set_object_arg(G_OBJECT(gstelement), tokens2[0], token);
-      if ( rs_args__control_persist ) {
-        g_hash_table_insert(hash_opts, g_strdup(tokens2[0]), g_strdup(token));
-      }
     } else {
-      g_warning("server_gstsrc_configure[%s][%s] element not found", tokens2[0], token);
+      g_debug("server_gstsrc_configure[%s][%s] element not found", tokens2[0], token);
     }
     g_free(token);
     g_strfreev(tokens2);
